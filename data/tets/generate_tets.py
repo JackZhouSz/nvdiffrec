@@ -9,7 +9,7 @@
 
 import os
 import numpy as np
-
+import subprocess
 
 '''
 This code segment shows how to use Quartet: https://github.com/crawforddoran/quartet, 
@@ -20,10 +20,7 @@ to generate a tet grid
 
 def generate_tetrahedron_grid_file(res=32, root='..'):
     frac = 1.0 / res
-    command = 'cd %s/quartet; ' % (root) + \
-                './quartet meshes/cube.obj %f meshes/cube_%f_tet.tet -s meshes/cube_boundary_%f.obj' % (frac, res, res)
-    os.system(command)
-
+    subprocess.run(['./quartet', 'meshes/cube.obj', str(frac), f'meshes/cube_{res}_tet.tet', '-s', f'meshes/cube_boundary_{res}.obj'], cwd=os.path.join(root, 'quartet'), check=True)
 
 '''
 This code segment shows how to convert from a quartet .tet file to compressed npz file
