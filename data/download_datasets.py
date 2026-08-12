@@ -18,6 +18,13 @@ import imageio
 import numpy as np
 import torch
 
+
+def safe_extract(archive, zipinfo, target_dir):
+    target_path = os.path.realpath(os.path.join(target_dir, zipinfo.filename))
+    if not target_path.startswith(os.path.realpath(target_dir) + os.sep):
+        raise ValueError(f'Zip entry would escape target dir: {zipinfo.filename}')
+    archive.extract(zipinfo, path=target_dir)
+
 def download_nerf_synthetic():
     TMP_ARCHIVE = "nerf_synthetic.zip"
     print("------------------------------------------------------------")
@@ -66,7 +73,7 @@ def download_nerd():
                 imageio.imwrite(os.path.join("nerd", out_file), np.clip(np.rint(rescaled_img.numpy() * 255.0), 0, 255).astype(np.uint8))
             else:
                 zipinfo.filename = out_file
-                archive.extract(zipinfo, path="nerd")
+                safe_extract(archive, zipinfo, "nerd")
         archive.close()
 
 download_nerf_synthetic()
