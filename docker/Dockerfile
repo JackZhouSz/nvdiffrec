@@ -43,5 +43,9 @@ RUN pip install ninja imageio imageio-ffmpeg xatlas gdown
 # install nvdiffrast
 RUN pip install git+https://github.com/NVlabs/nvdiffrast@253ac4f
 
-# HDR image support
-RUN imageio_download_bin freeimage
+# HDR image support (FreeImage) — pin URL + verify SHA256 (imageio_download_bin has no hash check)
+ARG FREEIMAGE_URL=https://github.com/imageio/imageio-binaries/raw/4483dd4d18eeedbc16da8108fc4a2f209e8d0358/freeimage/libfreeimage-3.16.0-linux64.so
+ARG FREEIMAGE_SHA256=8ba7be1e5d2bc8ffc94d111cb05f7de3dbbfd4af4d502a54eb22c4708021897c
+RUN mkdir -p /root/.imageio/freeimage \
+ && curl -fsSL -o /root/.imageio/freeimage/libfreeimage-3.16.0-linux64.so "${FREEIMAGE_URL}" \
+ && echo "${FREEIMAGE_SHA256}  /root/.imageio/freeimage/libfreeimage-3.16.0-linux64.so" | sha256sum -c -
