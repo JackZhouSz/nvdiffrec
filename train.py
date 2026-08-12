@@ -39,6 +39,21 @@ from render import render
 
 RADIUS = 3.0
 
+# Keys permitted in --config JSON files (excludes runtime-only fields like local_rank / multi_gpu).
+ALLOWED_CONFIG_KEYS = {
+    'iter', 'batch', 'spp', 'layers', 'train_res', 'display_res', 'texture_res',
+    'display_interval', 'save_interval', 'learning_rate', 'min_roughness',
+    'custom_mip', 'random_textures', 'background', 'loss', 'out_dir', 'ref_mesh',
+    'base_mesh', 'validate', 'isosurface', 'mtl_override', 'dmtet_grid',
+    'mesh_scale', 'env_scale', 'envmap', 'display', 'camera_space_light',
+    'lock_light', 'lock_pos', 'sdf_regularizer', 'laplace', 'laplace_scale',
+    'pre_load', 'kd_min', 'kd_max', 'ks_min', 'ks_max', 'nrm_min', 'nrm_max',
+    'cam_near_far', 'learn_light',
+}
+
+# Config fields that are used as filesystem paths (or interpolated into paths).
+PATH_CONFIG_KEYS = ('out_dir', 'ref_mesh', 'base_mesh', 'envmap', 'mtl_override', 'dmtet_grid')
+
 # Enable to debug back-prop anomalies
 # torch.autograd.set_detect_anomaly(True)
 
@@ -541,7 +556,19 @@ if __name__ == "__main__":
     if FLAGS.config is not None:
         data = json.load(open(FLAGS.config, 'r'))
         for key in data:
+            if key not in ALLOWED_CONFIG_KEYS:
+                raise ValueError(f'Unknown config key: {key}')
             FLAGS.__dict__[key] = data[key]
+
+        # Reject path traversal in path-like / path-interpolated config values.
+        for key in PATH_CONFIG_KEYS:
+            value = FLAGS.__dict__.get(key)
+            if value is not None and '..' in str(value):
+                raise ValueError(f'Path traversal in config key {key}: {value}')
+        if FLAGS.display is not None:
+            for layer in FLAGS.display:
+                if 'relight' in layer and isinstance(layer['relight'], str) and '..' in layer['relight']:
+                    raise ValueError(f'Path traversal in display relight path: {layer["relight"]}')
 
     if FLAGS.display_res is None:
         FLAGS.display_res = FLAGS.train_res
