@@ -41,7 +41,7 @@ COPY 10_nvidia.json /usr/share/glvnd/egl_vendor.d/10_nvidia.json
 RUN pip install ninja imageio imageio-ffmpeg xatlas gdown
 
 # install nvdiffrast
-RUN pip install git+https://github.com/NVlabs/nvdiffrast/
+RUN pip install git+https://github.com/NVlabs/nvdiffrast@253ac4f
 
 # HDR image support
 RUN imageio_download_bin freeimage
